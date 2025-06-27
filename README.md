@@ -14,6 +14,12 @@
 [🚀 Quick Setup](#-quick-setup) • [✨ Features](#-features) • [🎮 How to Use](#-how-to-use) • [🛠️ Development](#️-for-developers) • [🤝 Contributing](#-contributing)
 
 ---
+## **Before**
+
+![Screenshot 2025-06-27 at 10 36 27 AM](https://github.com/user-attachments/assets/8d02c3ee-0bd2-4b10-8a99-56e7a68bde0c)
+## **After**
+
+![Screenshot 2025-06-27 at 10 36 14 AM](https://github.com/user-attachments/assets/9d1aa52c-6e14-46d8-a7c3-918b518833da)
 
 </div>
 
