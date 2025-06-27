@@ -1,6 +1,10 @@
 <div align="center">
 
-# 🤪 Bonkd Chrome Extension 
+# Bonkd Chrome Extension 
+![bonk](https://github.com/user-attachments/assets/fb05ecaf-056d-4eaf-9fdf-80627041f6a2)
+
+
+
 
 ### *Make any webpage so simple, it's like you got bonked in the head!*
 
@@ -205,13 +209,13 @@ bonkd/
 We love contributions! Here's how you can help make Bonkd even better:
 
 ### 🐛 Bug Reports
-Found a bug? [Open an issue](https://github.com/yourusername/bonkd/issues) with:
+Found a bug? [Open an issue](https://github.com/followcurly/bonkd/issues) with:
 - Browser version
 - Steps to reproduce
 - Expected vs actual behavior
 
 ### ✨ Feature Requests  
-Have an idea? [Start a discussion](https://github.com/yourusername/bonkd/discussions) about:
+Have an idea? [Start a discussion](https://github.com/followcurly/bonkd/discussions) about:
 - What problem it solves
 - How it would work
 - Why it would be useful
@@ -260,6 +264,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **[⭐ Star this repo](https://github.com/yourusername/bonkd)** if you find it useful!
 
-Made with ❤️ by [Big Daddy](https://github.com/yourusername)
+Made with ❤️
 
 </div> 
