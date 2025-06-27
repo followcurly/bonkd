@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Bonkd</title>
+    <link rel="stylesheet" href="popup.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <img src="icons/bonk.jpg" alt="Bonkd Logo">
+        <h1>Bonkd</h1>
+      </div>
+      <p class="tagline">So simple, it's like you got bonked in the head.</p>
+      
+      <!-- Bonk Level Selector -->
+      <div class="bonk-level-section">
+        <div class="bonk-level-header">
+          <span class="bonk-level-emoji">⚡</span>
+          <span class="bonk-level-title">Bonk Level</span>
+        </div>
+        <div class="bonk-level-slider">
+          <div class="bonk-level-labels">
+            <span class="bonk-label" data-level="1">Little Bonk</span>
+            <span class="bonk-label active" data-level="2">Bonk</span>
+            <span class="bonk-label" data-level="3">Big Bonk</span>
+          </div>
+          <div class="slider-track">
+            <div class="slider-thumb" data-position="2"></div>
+          </div>
+          <div class="bonk-descriptions">
+            <div class="bonk-description" data-level="1">Light touch - keep it mostly the same</div>
+            <div class="bonk-description active" data-level="2">Balanced - make it easier to read</div>
+            <div class="bonk-description" data-level="3">Full bonk - big words hurt head</div>
+          </div>
+        </div>
+      </div>
+      
+      <button id="bonk-button">
+        <span class="button-text">Simplify Page</span>
+        <span class="button-loader" style="display: none;"></span>
+      </button>
+      <div id="status-message" class="status"></div>
+      
+      <!-- Toggle Section (hidden by default) -->
+      <div id="toggle-section" class="toggle-section" style="display: none;">
+        <div class="toggle-header">
+          <span class="toggle-emoji">🔄</span>
+          <span class="toggle-title">View Mode</span>
+        </div>
+        <div class="toggle-switch-container">
+          <span class="toggle-label">Original</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="text-toggle" checked>
+            <span class="slider"></span>
+          </label>
+          <span class="toggle-label">Bonked</span>
+        </div>
+        <div id="toggle-info" class="toggle-info">
+          <span id="element-count">0</span> elements bonked
+        </div>
+      </div>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html> 
