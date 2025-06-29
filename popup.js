@@ -1,4 +1,3 @@
-// State Manager - Centralized state management for Bonkd extension
 class BonkdStateManager {
   constructor() {
     this.state = {
@@ -57,7 +56,6 @@ class BonkdStateManager {
       await this.syncWithContentScript();
       
       this.initialized = true;
-      console.log('🎯 State Manager initialized:', this.state);
     } catch (error) {
       console.error('State initialization error:', error);
       this.initialized = true; // Don't block UI

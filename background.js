@@ -1,50 +1,32 @@
-// Simple Bonkd Background Script - Dumbed Down Version!
-console.log('🚀 Bonkd background script loaded');
+// Bonkd Background Script
+console.log('Bonkd background script loaded');
 
-// Import configuration
 importScripts('config.js');
 
-// Simple state tracking
 const activeTabs = new Set();
-
-// Store the current bonk level
 let currentBonkLevel = 2; // Default to "bonk"
 
-// Listen for messages from popup and content scripts
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  console.log('📨 Background received message:', request.action, request);
-  
   try {
     if (request.action === 'bonk') {
-      // Store the bonk level from the request
       currentBonkLevel = request.bonkLevel || 2;
       const isReBonk = request.isReBonk || false;
-      console.log(`🎯 User clicked bonk button with level ${currentBonkLevel} (${getBonkLevelName(currentBonkLevel)})${isReBonk ? ' - RE-BONK' : ''}`);
       
-      // User clicked the bonk button in popup
       chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
         if (tabs.length > 0) {
           const tabId = tabs[0].id;
-          console.log(`💉 ${isReBonk ? 'Re-injecting' : 'Injecting'} script into tab ${tabId}`);
           
-          // For re-bonking, we don't need to inject the script again if it's already there
-          // But we need to send the start message with the new bonk level
           if (isReBonk) {
-            // Send re-bonk message directly
             chrome.tabs.sendMessage(tabId, { 
               action: 'startReBonking',
               bonkLevel: currentBonkLevel 
             }, (response) => {
               if (chrome.runtime.lastError) {
-                console.error('❌ Failed to send re-bonk message:', chrome.runtime.lastError);
-                // If content script not available, inject and start normally
+                console.error('Failed to send re-bonk message:', chrome.runtime.lastError);
                 injectAndStart(tabId, currentBonkLevel, false);
-              } else {
-                console.log('✅ Re-bonk message sent successfully');
               }
             });
           } else {
-            // Normal bonking - inject script
             injectAndStart(tabId, currentBonkLevel, false);
           }
         }
@@ -52,133 +34,89 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       sendResponse({ success: true });
       
     } else if (request.action === 'processText') {
-      // Content script wants to process text - handle async
-      console.log(`🎯 Processing text request for chunk ${request.chunkIndex + 1}`);
-      console.log(`📄 Text length: ${request.text?.length || 0} chars`);
-      if (request.context) {
-        console.log(`🧠 Context: ${request.context.types?.join(', ')} (avg: ${request.context.avgLength} chars)`);
-      }
-      
-      // Handle async processing
       handleAsyncProcessing(request, sender, sendResponse);
       return true; // Keep message channel open for async response
     }
   } catch (error) {
-    console.error('❌ Error in message listener:', error);
+    console.error('Error in message listener:', error);
     sendResponse({ error: error.message });
   }
 });
 
-// Get bonk level name for logging
 function getBonkLevelName(level) {
   const names = { 1: 'Little Bonk', 2: 'Bonk', 3: 'Big Bonk' };
   return names[level] || 'Bonk';
 }
 
-// Handle async processing properly - NO CALLBACK RESPONSE
 async function handleAsyncProcessing(request, sender, sendResponse) {
   try {
-          console.log(`🔄 Starting async processing for chunk ${request.chunkIndex + 1} with bonk level ${currentBonkLevel}`);
-      // Just process - don't use sendResponse, let processWithAI handle the messaging
-      await processWithAI(request.text, sender.tab?.id, request.chunkIndex, request.context, request.previousSummary);
-      console.log(`✅ Async processing complete for chunk ${request.chunkIndex + 1}`);
-    // Send simple acknowledgment 
+    await processWithAI(request.text, sender.tab?.id, request.chunkIndex, request.context, request.previousSummary);
     sendResponse({ received: true });
   } catch (error) {
-    console.error(`❌ Async processing failed for chunk ${request.chunkIndex + 1}:`, error);
+    console.error('Async processing failed:', error);
     sendResponse({ error: error.message });
   }
 }
 
-// Clean up when tabs are closed
 chrome.tabs.onRemoved.addListener((tabId) => {
-  console.log(`🗑️ Tab ${tabId} removed, cleaning up`);
   activeTabs.delete(tabId);
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
   if (changeInfo.status === 'loading') {
-    console.log(`🔄 Tab ${tabId} reloading, cleaning up`);
     activeTabs.delete(tabId);
   }
 });
 
-// Smart AI processing function with context awareness and fallbacks
 async function processWithAI(text, tabId, chunkIndex = 0, context = null, previousSummary = null) {
-  console.log(`🤖 Starting smart AI processing for chunk ${chunkIndex + 1}:`);
-  console.log(`   📊 Tab ID: ${tabId}`);
-  console.log(`   📄 Text length: ${text?.length || 0} chars`);
-  console.log(`   📝 Text preview: "${text?.substring(0, 100)}..."`);
-  if (context) {
-    console.log(`   🧠 Context types: ${context.types?.join(', ')}`);
-    console.log(`   🎯 Avg length: ${context.avgLength} chars`);
-  }
-  if (previousSummary) {
-    console.log(`   📜 Previous summary: "${previousSummary}"`);
-  }
-  
   return await processWithAIFallback(text, tabId, chunkIndex, context, previousSummary);
 }
 
-// Multi-tier fallback processing system
 async function processWithAIFallback(text, tabId, chunkIndex, context, previousSummary, attemptLevel = 1) {
   const maxAttempts = 3;
-  console.log(`🎯 Processing attempt ${attemptLevel}/${maxAttempts} for chunk ${chunkIndex + 1}`);
   
   try {
-    // Get API key
     const apiKey = self.BONKD_CONFIG?.GEMINI_API_KEY;
-    console.log(`🔑 API key check: ${apiKey ? `Present (${apiKey.substring(0, 10)}...)` : 'MISSING'}`);
     
     if (!apiKey || apiKey === "YOUR_API_KEY_HERE") {
       const errorMsg = 'API key not configured!';
-      console.error(`❌ ${errorMsg}`);
+      console.error(errorMsg);
       sendErrorToTab(tabId, errorMsg, chunkIndex);
       throw new Error(errorMsg);
     }
     
-    // Check text length
     if (!text || text.length === 0) {
       const errorMsg = 'No text provided!';
-      console.error(`❌ ${errorMsg}`);
+      console.error(errorMsg);
       sendErrorToTab(tabId, errorMsg, chunkIndex);
       throw new Error(errorMsg);
     }
     
-    // Check text length - increased limit
     if (text.length > 30000) {
       const errorMsg = `Text too long! (${text.length} chars, max 30000)`;
-      console.error(`❌ ${errorMsg}`);
+      console.error(errorMsg);
       sendErrorToTab(tabId, errorMsg, chunkIndex);
       throw new Error(errorMsg);
     }
     
-    // Create the appropriate prompt based on attempt level
     const textParts = text.split('---TEXT_SEPARATOR---');
-    console.log(`📋 Text has ${textParts.length} parts`);
     
     let prompt;
     if (attemptLevel === 1) {
       prompt = createContextAwarePrompt(text, textParts.length, context, previousSummary, currentBonkLevel);
-      console.log(`💭 Primary prompt created (${prompt.length} chars) for bonk level ${currentBonkLevel}`);
     } else if (attemptLevel === 2) {
       prompt = createSimplePrompt(text, textParts.length, currentBonkLevel);
-      console.log(`💭 Simple fallback prompt created (${prompt.length} chars) for bonk level ${currentBonkLevel}`);
     } else {
-      // attemptLevel === 3: Basic word substitution fallback
-      console.log(`🔧 Using basic word substitution fallback with bonk level ${currentBonkLevel}`);
+      // Basic word substitution fallback
       const simplifiedSections = textParts.map(part => basicWordSubstitution(part.trim(), currentBonkLevel));
       const bonkedData = {
         bonkedSections: simplifiedSections,
         summary: "Content simplified using basic word substitution"
       };
-      console.log(`✅ Word substitution fallback complete for chunk ${chunkIndex + 1}`);
       sendSuccessToTab(tabId, bonkedData.bonkedSections.join('---TEXT_SEPARATOR---'), bonkedData.summary, chunkIndex);
       return bonkedData;
     }
     
-    // Call Gemini API
-    console.log(`🚀 Making API call to Gemini (attempt ${attemptLevel})...`);
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-8b:generateContent?key=${apiKey}`;
     
     const requestBody = {
@@ -186,11 +124,11 @@ async function processWithAIFallback(text, tabId, chunkIndex, context, previousS
         parts: [{ text: prompt }]
       }],
       generationConfig: {
-        responseMimeType: "application/json", // Enable JSON output mode
-        temperature: attemptLevel === 1 ? 0.7 : 0.3, // Lower temperature for fallbacks
+        responseMimeType: "application/json",
+        temperature: attemptLevel === 1 ? 0.7 : 0.3,
         topK: 40,
         topP: 0.8,
-        maxOutputTokens: 4096 // Increased output tokens for larger chunks
+        maxOutputTokens: 4096
       },
       safetySettings: [
         { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
@@ -200,13 +138,6 @@ async function processWithAIFallback(text, tabId, chunkIndex, context, previousS
       ]
     };
     
-    console.log(`📤 Request body:`, {
-      promptLength: prompt.length,
-      maxTokens: 4096,
-      temperature: requestBody.generationConfig.temperature,
-      attempt: attemptLevel
-    });
-    
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
@@ -214,21 +145,18 @@ async function processWithAIFallback(text, tabId, chunkIndex, context, previousS
       },
       body: JSON.stringify(requestBody)
     });
-
-    console.log(`📥 API response status: ${response.status} ${response.statusText}`);
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`❌ API error response:`, errorText);
+      console.error('API error response:', errorText);
       throw new Error(`API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    console.log(`📋 Raw API response:`, data);
     
     let responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!responseText) {
-      console.error(`❌ No text in API response:`, data);
+      console.error('No text in API response:', data);
       throw new Error('No parsable text in AI response');
     }
 
@@ -239,59 +167,37 @@ async function processWithAIFallback(text, tabId, chunkIndex, context, previousS
         throw new Error("Missing 'bonkedSections' or 'summary' in JSON response.");
       }
     } catch (e) {
-      console.error(`❌ Failed to parse JSON response (attempt ${attemptLevel}):`, responseText, e);
+      console.error('Failed to parse JSON response:', e);
       throw new Error('AI response was not valid JSON');
     }
     
     let { bonkedSections, summary } = bonkedData;
-    console.log(`📝 Raw bonked text (${bonkedSections.length} parts):`, bonkedSections);
-    console.log(`📜 New summary: "${summary}"`);
-    
-    // Simple cleanup
     bonkedSections = bonkedSections.map((section) => cleanupText(section, 1));
-    console.log(`🧹 Cleaned bonked text (${bonkedSections.length} parts):`, bonkedSections);
     
-    console.log(`✅ Successfully bonked chunk ${chunkIndex + 1} (attempt ${attemptLevel})`);
-    
-    // Send back to content script
     sendSuccessToTab(tabId, bonkedSections.join('---TEXT_SEPARATOR---'), summary, chunkIndex);
     
     return bonkedData;
     
   } catch (error) {
-    console.error(`❌ Error processing chunk ${chunkIndex + 1} (attempt ${attemptLevel}):`, {
-      error: error.message,
-      stack: error.stack,
-      tabId: tabId,
-      chunkIndex: chunkIndex,
-      attemptLevel: attemptLevel,
-      textLength: text?.length || 0
-    });
+    console.error('Error processing chunk:', error.message);
     
-    // Try fallback if we haven't reached max attempts
     if (attemptLevel < maxAttempts) {
-      console.log(`🔄 Trying fallback method ${attemptLevel + 1} for chunk ${chunkIndex + 1}`);
       return await processWithAIFallback(text, tabId, chunkIndex, context, previousSummary, attemptLevel + 1);
     }
     
-    // Send error back to content script
     sendErrorToTab(tabId, 'AI processing failed after all fallback attempts: ' + error.message, chunkIndex);
     throw error;
   }
 }
 
-// Create a simple, reliable prompt for fallback
 function createSimplePrompt(text, expectedParts, bonkLevel = 2) {
-  console.log(`💭 Creating simple fallback prompt for ${expectedParts} parts with bonk level ${bonkLevel}`);
-  
-  // Adjust instructions based on bonk level
   let instruction;
   if (bonkLevel === 1) {
     instruction = "Make this text a bit simpler and clearer. Keep most of the original style and complexity.";
   } else if (bonkLevel === 3) {
     instruction = "Make this text much simpler and shorter. Use very easy words that a child could understand. Explain like I'm 5 years old.";
   } else {
-    instruction = "Make this text much simpler and shorter. Use easy words that anyone can understand.";
+    instruction = "Make this text much simpler and shorter. Use veryeasy words that anyone can understand.";
   }
   
   const jsonInstruction = `
@@ -322,10 +228,7 @@ ${jsonInstruction}`;
   }
 }
 
-// Basic word substitution fallback
 function basicWordSubstitution(text, bonkLevel = 2) {
-  console.log(`🔧 Applying basic word substitution to: "${text.substring(0, 50)}..." with bonk level ${bonkLevel}`);
-  
   const substitutions = {
     // Complex -> Simple word mappings
     'utilize': 'use',
@@ -572,16 +475,12 @@ function basicWordSubstitution(text, bonkLevel = 2) {
     }
   }
   
-  // Clean up extra whitespace
   simplified = simplified.replace(/\s+/g, ' ').trim();
   
-  console.log(`🔧 Word substitution result (level ${bonkLevel}): "${simplified.substring(0, 50)}..."`);
   return simplified;
 }
 
-// Helper function to send success to tab
 function sendSuccessToTab(tabId, bonkedText, summary, chunkIndex) {
-  console.log(`📤 Sending success to tab ${tabId} for chunk ${chunkIndex + 1}`);
   sendToTab(tabId, { 
     action: 'replaceText', 
     text: bonkedText,
@@ -590,9 +489,7 @@ function sendSuccessToTab(tabId, bonkedText, summary, chunkIndex) {
   });
 }
 
-// Helper function to send error to tab
 function sendErrorToTab(tabId, errorMessage, chunkIndex) {
-  console.log(`📤 Sending error to tab ${tabId} for chunk ${chunkIndex + 1}: ${errorMessage}`);
   sendToTab(tabId, { 
     action: 'error', 
     text: errorMessage,
@@ -600,11 +497,7 @@ function sendErrorToTab(tabId, errorMessage, chunkIndex) {
   });
 }
 
-// Create context-aware prompts for better AI processing
 function createContextAwarePrompt(text, expectedParts, context = null, previousSummary = null, bonkLevel = 2) {
-  console.log(`💭 Creating context-aware prompt for ${expectedParts} parts with bonk level ${bonkLevel}`);
-  
-  // Analyze context if provided
   let contextInstructions = '';
   if (context) {
     const types = context.types || [];
@@ -696,103 +589,72 @@ ${jsonInstruction}`;
   }
 }
 
-// Simple text cleanup with detailed logging
 function cleanupText(text, expectedParts) {
-  console.log(`🧹 Cleaning up text for ${expectedParts} expected parts`);
-  console.log(`🧹 Input text: "${text}"`);
-  
-  // Remove quotes and cleanup
   text = text.replace(/^["']|["']$/g, '').trim();
-  
-  // Fix spacing
   text = text.replace(/\s+/g, ' ');
   
   if (expectedParts === 1) {
-    // Single chunk - remove any separators
     text = text.replace(/---TEXT_SEPARATOR---/g, ' ').trim();
     if (text && !text.match(/[.!?]$/)) {
       text += '.';
     }
-    console.log(`🧹 Single part result: "${text}"`);
   } else {
-    // Multiple chunks - validate separators
     const parts = text.split('---TEXT_SEPARATOR---');
-    console.log(`🧹 Found ${parts.length} parts, expected ${expectedParts}`);
     
     if (parts.length !== expectedParts) {
-      console.warn(`⚠️ Part count mismatch! Expected ${expectedParts}, got ${parts.length}`);
-      
-      // Fix mismatch
       if (parts.length < expectedParts) {
-        console.log(`➕ Padding with ${expectedParts - parts.length} fallback parts`);
         while (parts.length < expectedParts) {
           parts.push('__BONKD_SKIP__');
         }
       } else {
-        console.log(`✂️ Trimming to ${expectedParts} parts`);
         parts.splice(expectedParts);
       }
     }
     
-    // Clean each part
-    text = parts.map((part, index) => {
+    text = parts.map((part) => {
       part = part.trim();
-      // Do not add punctuation to the skip marker
       if (part && part !== '__BONKD_SKIP__' && !part.match(/[.!?]$/)) {
         part += '.';
       }
-      console.log(`🧹 Part ${index + 1}: "${part}"`);
       return part;
     }).join('---TEXT_SEPARATOR---');
   }
   
-  console.log(`🧹 Final cleaned text: "${text}"`);
   return text;
 }
 
-// Simple function to send messages to tabs with detailed logging
 function sendToTab(tabId, message) {
   if (!tabId) {
-    console.error('❌ No tab ID provided for message');
+    console.error('No tab ID provided for message');
     return;
   }
-  
-  console.log(`📤 Sending message to tab ${tabId}:`, message);
   
   try {
     chrome.tabs.sendMessage(tabId, message, (response) => {
       if (chrome.runtime.lastError) {
-        console.error(`❌ Failed to send message to tab ${tabId}:`, chrome.runtime.lastError.message);
-      } else {
-        console.log(`✅ Message sent successfully to tab ${tabId}`, response);
+        console.error('Failed to send message to tab:', chrome.runtime.lastError.message);
       }
     });
   } catch (error) {
-    console.error(`❌ Error sending message to tab ${tabId}:`, error);
+    console.error('Error sending message to tab:', error);
   }
 }
 
-// Helper function to inject script and start bonking
 function injectAndStart(tabId, bonkLevel, isReBonk) {
   chrome.scripting.executeScript({
     target: { tabId: tabId },
     files: ['content.js']
   }).then(() => {
-    console.log('✅ Script injection successful');
-    
-    // Send start message to content script with bonk level
     chrome.tabs.sendMessage(tabId, { 
       action: 'startBonking',
       bonkLevel: bonkLevel,
       isReBonk: isReBonk
     }, (response) => {
       if (chrome.runtime.lastError) {
-        console.error('❌ Failed to send start message:', chrome.runtime.lastError);
-      } else {
-        console.log('✅ Start message sent successfully');
+        console.error('Failed to send start message:', chrome.runtime.lastError);
       }
     });
   }).catch(error => {
-    console.error('❌ Failed to inject script:', error);
+    console.error('Failed to inject script:', error);
   });
 } 
