@@ -1,12 +1,24 @@
 # Bonkd Chrome Extension
 
-**Make any webpage simple to read with AI-powered text simplification.**
+**Why use many words when few words do trick?**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
 Transform complex articles, news, and web content into easy-to-read text with one click.
 
+## The Premise
+
+Is technology making us dumber? Are our brains turning to mush from endless scrolling and information overload? I wrote an article about this, called **[The Cognitive Downgrade](https://followcurly.substack.com/p/the-cognitive-downgrade)**, that explores this very question.
+
+This extension is my sarcastic, semi-dystopian solution to the problem. If we're all becoming illiterate, we might as well have the tools to deal with it.
+
 ## Features
+
+### Before
+![Screenshot 2025-06-27 at 10 36 27 AM](https://github.com/user-attachments/assets/678de76a-0915-4887-ac1c-2126e99b89be)
+
+### After
+![Screenshot 2025-06-27 at 10 36 14 AM](https://github.com/user-attachments/assets/5d0d3e27-336a-4942-a247-554f818187d3)
 
 - **3 Simplification Levels**: Little Bonk (light), Bonk (balanced), Big Bonk (ELI5)
 - **Toggle View**: Switch between original and simplified text instantly
@@ -14,10 +26,12 @@ Transform complex articles, news, and web content into easy-to-read text with on
 - **Remembers Settings**: Saves your preferences
 - **Works Offline**: Uses word substitution fallback when API is unavailable
 
+
+
 ## How to Use
 
 1. Navigate to any text-heavy webpage
-2. Click the Bonkd icon in your toolbar  
+2. Click the Bonkd icon in your toolbar
 3. Choose your simplification level
 4. Click "Simplify Page"
 5. Toggle between original and simplified text anytime
@@ -52,23 +66,3 @@ Transform complex articles, news, and web content into easy-to-read text with on
 ## For Developers
 
 ### Project Structure
-```
-bonkd/
-├── manifest.json      # Extension configuration
-├── popup.html/css/js  # User interface
-├── background.js      # AI processing & API communication
-├── content.js         # Content detection & replacement
-├── config.js          # Configuration (API key)
-└── icons/             # Extension icons
-```
-
-### Contributing
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
